@@ -23,8 +23,8 @@ static esp_err_t update_ota(httpd_req_t *req)
   }
   ESP_LOGI(TAG, "Running partition type %d", running->type);
 
-  int buf_len = 1024;
-  char *buf = (char *)calloc(1, buf_len + 1);
+  int buf_len = 1024 * 5;
+  char *buf = (char *)malloc(buf_len + 1);
 
   update_partition = esp_ota_get_next_update_partition(NULL);
   assert(update_partition != NULL);
@@ -115,7 +115,7 @@ static esp_err_t update_ota(httpd_req_t *req)
         break;
       }
       binary_file_length += data_read;
-      ESP_LOGD(TAG, "Written image length %d", binary_file_length);
+      ESP_LOGI(TAG, "Written image length %d by %d", binary_file_length, req->content_len);
     }
     else if (data_read == 0)
     {
@@ -156,19 +156,4 @@ static esp_err_t update_ota(httpd_req_t *req)
 
   esp_restart();
   return ret;
-}
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-
-static const httpd_uri_t http_server_post_ota_request = {
-    .uri = "/ota",
-    .method = HTTP_POST,
-    .handler = update_ota};
-
-#pragma GCC diagnostic pop
-
-static esp_err_t register_ota_handler(httpd_handle_t handle)
-{
-  return httpd_register_uri_handler(handle, &http_server_post_ota_request);
 }
